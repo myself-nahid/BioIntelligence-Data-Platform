@@ -1,7 +1,9 @@
-from ...main import celery
+# --- CHANGE THIS LINE ---
+from ...core.celery_app import celery_app
 from ...models import train
 
-@celery.task
+# --- AND CHANGE THIS LINE ---
+@celery_app.task
 def retrain_trial_success_model():
     """
     Celery task to trigger the weekly model retraining pipeline.

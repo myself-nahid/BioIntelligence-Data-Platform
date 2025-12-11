@@ -1,6 +1,8 @@
-from ...main import celery
+# --- CHANGE THIS LINE ---
+from ...core.celery_app import celery_app
 
-@celery.task
+# --- AND CHANGE THIS LINE ---
+@celery_app.task
 def update_most_watched():
     """
     Celery task to refresh the 'most_watched' materialized view.
