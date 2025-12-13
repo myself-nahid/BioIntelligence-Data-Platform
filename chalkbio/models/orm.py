@@ -22,3 +22,14 @@ class UserEvent(Base):
     event_version = Column(String(10), default='v1.0')
     schema_version = Column(String(10), default='s1.0')
     timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class Watchlist(Base):
+    __tablename__ = "watchlists"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    entity_type = Column(String(50), nullable=False)
+    entity_id = Column(String(100), nullable=False)
+    added_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    removed_at = Column(TIMESTAMP(timezone=True))
