@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from chalkbio.api.endpoints import events, watchlists
+from chalkbio.api.endpoints import crowding, events, watchlists
 # --- IMPORT THE CELERY APP, NOT Celery directly ---
 from .core.celery_app import celery_app
 from .api.endpoints import predictions, investigators
@@ -18,6 +18,8 @@ app.include_router(predictions.router, prefix="/api", tags=["Predictions"])
 app.include_router(investigators.router, prefix="/api", tags=["Investigators"])
 app.include_router(events.router, prefix="/api", tags=["Events"])
 app.include_router(watchlists.router, prefix="/api", tags=["Watchlists"])
+app.include_router(crowding.router, prefix="/api", tags=["Crowding"])
+app.include_router(crowding.router, prefix="/api", tags=["Alerts"])
 
 # Setup Celery periodic tasks
 # --- PASS THE IMPORTED CELERY APP ---

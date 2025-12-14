@@ -2,8 +2,7 @@ import pickle
 import json
 import pandas as pd
 from sqlalchemy.orm import Session
-
-# Import our new feature engineering function
+from sqlalchemy import text
 from .feature_engineering import get_text_embeddings
 
 # Define paths for the new v2 model artifacts
@@ -12,11 +11,14 @@ MODEL_VERSION = "v2.0"
 MODEL_ARTIFACT_DIR = "./models_volume"
 MODEL_ARTIFACT_PATH = f"{MODEL_ARTIFACT_DIR}/{MODEL_NAME}_{MODEL_VERSION}.pkl"
 TRAINING_COLUMNS_PATH = f"{MODEL_ARTIFACT_DIR}/training_columns_v2.json"
+CATEGORIES_PATH = f"{MODEL_ARTIFACT_DIR}/categories.json"
 
 def load_prediction_assets():
-    """Loads the model and the list of training columns from disk."""
-    model = None
-    training_columns = None
+    """Loads model, columns, AND categories from disk."""
+    # --- THIS IS THE FIX: Initialize all variables at the top ---
+    model, training_columns, categories = None, None, None
+    # -----------------------------------------------------------
+
     try:
         with open(MODEL_ARTIFACT_PATH, "rb") as f:
             model = pickle.load(f)
@@ -29,45 +31,69 @@ def load_prediction_assets():
     except FileNotFoundError:
         print(f"Error: Training columns file not found at {TRAINING_COLUMNS_PATH}")
 
-    return model, training_columns
+    try:
+        with open(CATEGORIES_PATH, "r") as f:
+            categories = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: Categories file not found at {CATEGORIES_PATH}")
 
-# Load assets once when the application starts
-model, training_columns = load_prediction_assets()
+    return model, training_columns, categories
+# Load assets once when the module is imported
+model, training_columns, categories = load_prediction_assets()
 
 def get_prediction_for_trial(db: Session, trial_id: str):
     """
-    Fetches trial features, engineers them using the hybrid approach, and returns a prediction.
+    Fetches REAL trial features, engineers them, and returns a prediction.
     """
     if not model or not training_columns:
-        raise RuntimeError("Hybrid model or training columns are not loaded. Cannot make predictions.")
+        raise RuntimeError("Hybrid model or training columns are not loaded.")
 
-    # 1. SIMULATED FEATURE FETCHING (Now includes text)
-    raw_trial_data = {
-        'trial_description': "A Phase II study to determine the antitumor activity of Drug X in metastatic breast cancer.",
-        'phase': 'Phase II',
-        'indication': 'Oncology',
-        'sponsor_size': 750,
-        'investigator_success_rate': 0.78,
-        'mechanism_crowding_score': 50
-    }
-    predict_df = pd.DataFrame([raw_trial_data])
+    # 1. FETCH REAL FEATURES from the database
+    query = text("""
+    SELECT
+        t.trial_id, t.trial_description, t.phase, t.indication, t.sponsor_size,
+        i.success_rate as investigator_success_rate,
+        mc.crowding_risk_score as mechanism_crowding_score
+    FROM trials t
+    LEFT JOIN investigators i ON t.investigator_id = i.investigator_id
+    LEFT JOIN mechanism_crowding mc ON t.mechanism_of_action = mc.mechanism_of_action AND t.phase = mc.phase
+    WHERE t.trial_id = :trial_id
+    LIMIT 1;
+    """)
+    
+    result = db.execute(query, {'trial_id': trial_id}).mappings().first()
+
+    if not result:
+        return None # Let the API handle the 404
+
+    # Convert SQL row to a DataFrame, filling missing values
+    predict_df = pd.DataFrame([result]).fillna(0)
+    for col, cats in categories.items():
+        if col in predict_df.columns:
+            predict_df[col] = pd.Categorical(predict_df[col], categories=cats)
 
     # 2. ENGINEER FEATURES (Identical to training)
     
     # a) Structured Features
     structured_features_df = pd.get_dummies(
         predict_df[['phase', 'indication', 'sponsor_size', 'investigator_success_rate', 'mechanism_crowding_score']],
-        columns=['phase', 'indication'],
+        columns=['phase', 'indication'], # Explicitly name the columns to encode
         drop_first=False
     )
+    # ------------------------------------
     
     # b) Text Features
     text_embeddings_df = get_text_embeddings(predict_df['trial_description'])
 
     # c) Combine Features
+    # --- THIS IS THE FIX ---
+    # Reset the index on both DataFrames to ensure they align perfectly
+    structured_features_df.reset_index(drop=True, inplace=True)
+    text_embeddings_df.reset_index(drop=True, inplace=True)
+    # ------------------------------------
     predict_df_processed = pd.concat([structured_features_df, text_embeddings_df], axis=1)
 
-    # 3. ALIGN COLUMNS (Critical step remains the same)
+    # 3. ALIGN COLUMNS (This is now our failsafe)
     predict_df_aligned = predict_df_processed.reindex(columns=training_columns, fill_value=0)
 
     # 4. MAKE PREDICTION

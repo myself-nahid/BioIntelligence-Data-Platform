@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, JSON, TIMESTAMP, func
+from sqlalchemy import DECIMAL, Column, ForeignKey, Integer, String, JSON, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import UUID
 # --- CHANGE THIS LINE ---
 from sqlalchemy.orm import declarative_base
@@ -33,3 +33,35 @@ class Watchlist(Base):
     entity_id = Column(String(100), nullable=False)
     added_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     removed_at = Column(TIMESTAMP(timezone=True))
+
+class Alert(Base):
+    __tablename__ = "alerts"
+    alert_id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    entity_type = Column(String(50), nullable=False)
+    entity_id = Column(String(100), nullable=False)
+    alert_type = Column(String(50), nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    clicked_at = Column(TIMESTAMP(timezone=True))
+
+class Investigator(Base):
+    __tablename__ = "investigators"
+    investigator_id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    name = Column(String(255), nullable=False)
+    institution = Column(String(255))
+    success_rate = Column(DECIMAL(5, 2), default=0.0)
+    influence_score = Column(DECIMAL(5, 2), default=0.0)
+
+class Trial(Base):
+    __tablename__ = "trials"
+    trial_id = Column(String(50), primary_key=True)
+    trial_description = Column(String)
+    phase = Column(String(50))
+    status = Column(String(50))
+    indication = Column(String(255))
+    sponsor_size = Column(Integer)
+    mechanism_of_action = Column(String(255))
+    investigator_id = Column(UUID(as_uuid=True), ForeignKey("investigators.investigator_id"))
+    outcome = Column(String(50))

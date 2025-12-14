@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from datetime import datetime
+import uuid
 
 class Investigator(BaseModel):
-    investigator_id: str
+    investigator_id: uuid.UUID
     name: str
     institution: str | None
     success_rate: float
-    total_trials: int
-    last_updated: datetime
+    influence_score: float
 
     class Config:
         from_attributes = True

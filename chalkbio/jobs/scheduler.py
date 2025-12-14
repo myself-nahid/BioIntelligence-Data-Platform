@@ -15,4 +15,8 @@ def setup_periodic_tasks(celery_app):
             'task': 'chalkbio.jobs.weekly.retrain_model.retrain_trial_success_model',
             'schedule': crontab(day_of_week='sunday', hour=4, minute=0),
         },
+        'refresh-crowding-index': {
+            'task': 'chalkbio.jobs.daily.update_crowding_index.refresh_crowding_index_view',
+            'schedule': crontab(hour=3, minute=0), # Daily at 3 AM UTC
+        },
     }

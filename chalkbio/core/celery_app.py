@@ -9,7 +9,9 @@ celery_app = Celery(
     include=[ # Add the paths to all your task modules here
         'chalkbio.jobs.daily.run_validations',
         'chalkbio.jobs.daily.update_aggregations',
-        'chalkbio.jobs.weekly.retrain_model'
+        'chalkbio.jobs.weekly.retrain_model',
+        'chalkbio.jobs.daily.update_crowding_index',
+        'chalkbio.jobs.triggers.fda_alerts',
     ]
 )
 
