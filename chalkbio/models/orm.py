@@ -45,6 +45,10 @@ class Alert(Base):
     message = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     clicked_at = Column(TIMESTAMP(timezone=True))
+    sent_at = Column(TIMESTAMP(timezone=True))
+    opened_at = Column(TIMESTAMP(timezone=True))
+    clicked_at = Column(TIMESTAMP(timezone=True))
+    dismissed_at = Column(TIMESTAMP(timezone=True))
 
 class Investigator(Base):
     __tablename__ = "investigators"
