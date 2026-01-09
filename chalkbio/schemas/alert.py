@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
@@ -11,3 +12,8 @@ class AlertResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AlertResponseWrapper(BaseModel):
+    status: str
+    message: str
+    data: List[AlertResponse]

@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from ...schemas.watchlist import WatchlistCreate, WatchlistResponse
+from ...schemas.watchlist import WatchlistCreate, WatchlistResponse, WatchlistCreateWrapper, WatchlistListWrapper
 from ...models.orm import Watchlist
 from ..deps import get_db
 
 router = APIRouter()
 
-@router.post("/watchlists", response_model=WatchlistResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/watchlists", response_model=WatchlistCreateWrapper, status_code=status.HTTP_201_CREATED)
 def add_to_watchlist(
     item: WatchlistCreate,
     db: Session = Depends(get_db)
@@ -29,10 +29,10 @@ def add_to_watchlist(
             status_code=500,
             detail=f"Failed to add item to watchlist: {e}"
         )
-        
-    return db_item
 
-@router.get("/watchlists", response_model=List[WatchlistResponse])
+    return {"status": "success", "message": "Item added to watchlist successfully", "data": db_item}
+
+@router.get("/watchlists", response_model=WatchlistListWrapper)
 def get_user_watchlist(
     user_id: uuid.UUID = Query(..., description="The UUID of the user whose watchlist to retrieve"),
     db: Session = Depends(get_db)
@@ -44,5 +44,5 @@ def get_user_watchlist(
         Watchlist.user_id == user_id,
         Watchlist.removed_at == None
     ).all()
-    
-    return watchlist_items
+
+    return {"status": "success", "message": "Watchlist retrieved successfully", "data": watchlist_items}

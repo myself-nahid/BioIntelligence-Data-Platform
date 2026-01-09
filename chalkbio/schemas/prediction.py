@@ -12,3 +12,8 @@ class PredictionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PredictionResponseWrapper(BaseModel):
+    status: str
+    message: str
+    data: PredictionResponse

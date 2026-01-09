@@ -14,14 +14,9 @@ def log_user_event(
     """
     Receives and logs a single user event to the database.
     """
-    # Convert the Pydantic model to a dictionary
     event_data = event.model_dump()
-    
-    # Handle the 'metadata' name clash
     if 'metadata' in event_data:
         event_data['metadata_'] = event_data.pop('metadata')
-
-    # Create a new UserEvent database object from the modified dictionary
     db_event = UserEvent(**event_data)
     
     try:
@@ -30,11 +25,10 @@ def log_user_event(
         db.refresh(db_event)
     except Exception as e:
         db.rollback()
-        # In production, you would log the error `e`
-        print(f"Error logging event: {e}") # Added for debugging
+        print(f"Error logging event: {e}") 
         raise HTTPException(
             status_code=500,
             detail="Failed to log user event."
         )
-        
-    return {"status": "success", "event_id": db_event.event_id}
+
+    return {"status": "success", "message": "Event logged successfully", "data": {"event_id": db_event.event_id}}

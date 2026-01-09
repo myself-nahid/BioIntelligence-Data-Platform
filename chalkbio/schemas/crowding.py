@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 
 class CrowdingIndexResponse(BaseModel):
@@ -8,3 +9,9 @@ class CrowdingIndexResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CrowdingIndexResponseWrapper(BaseModel):
+    status: str
+    message: str
+    data: List[CrowdingIndexResponse]
