@@ -86,3 +86,6 @@ INSERT INTO trials (trial_id, trial_description, phase, status, indication, spon
 ('NCT00000006', 'A failed mTOR trial from a small sponsor.', 'Phase II', 'Completed', 'Oncology', 50, 'mTOR Inhibitor', 'b2b2b2b2-2222-2222-2222-222222222222', 'Failure'),
 ('NCT00000007', 'Successful JAK inhibitor study, large enrollment.', 'Phase II', 'Completed', 'Dermatology', 1500, 'JAK Inhibitor', 'a1a1a1a1-1111-1111-1111-111111111111', 'Success'),
 ('NCT00000008', 'A Phase III trial to be ignored by the training query.', 'Phase III', 'Completed', 'Oncology', 2000, 'mTOR Inhibitor', 'a1a1a1a1-1111-1111-1111-111111111111', 'Success');
+
+INSERT INTO investigator_collaborations (investigator_a_id, investigator_b_id, collaboration_count) VALUES
+('a1a1a1a1-1111-1111-1111-111111111111', 'b2b2b2b2-2222-2222-2222-222222222222', 5);

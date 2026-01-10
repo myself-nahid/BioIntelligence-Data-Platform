@@ -58,6 +58,13 @@ class Investigator(Base):
     success_rate = Column(DECIMAL(5, 2), default=0.0)
     influence_score = Column(DECIMAL(5, 2), default=0.0)
 
+class Collaboration(Base):
+    __tablename__ = "investigator_collaborations"
+    collab_id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    investigator_a_id = Column(UUID(as_uuid=True), ForeignKey("investigators.investigator_id"))
+    investigator_b_id = Column(UUID(as_uuid=True), ForeignKey("investigators.investigator_id"))
+    collaboration_count = Column(Integer, default=1)
+
 class Trial(Base):
     __tablename__ = "trials"
     trial_id = Column(String(50), primary_key=True)
