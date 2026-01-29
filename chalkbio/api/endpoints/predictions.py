@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from ...schemas.prediction import PredictionResponse, PredictionResponseWrapper
 from ...models import predict
 from ..deps import get_db
+from ...schemas.model_performance import ModelPerformanceResponse, ModelPerformanceResponseWrapper
+from ...models.orm import MLModel
+from fastapi import status
 
 router = APIRouter()
 
@@ -26,3 +29,22 @@ def predict_trial_success(trial_id: str, db: Session = Depends(get_db)):
             status_code=500,
             detail="An internal error occurred while making a prediction."
         )
+    
+@router.get("/predictions/model/performance", response_model=ModelPerformanceResponseWrapper)
+def get_model_performance(db: Session = Depends(get_db)):
+    """
+    Retrieves the performance metrics for the latest trained model.
+    """
+    latest_model = db.query(MLModel).order_by(MLModel.trained_on.desc()).first()
+
+    if not latest_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No model performance data found in the database."
+        )
+    
+    return {
+        "status": "success",
+        "message": "Model performance retrieved successfully",
+        "data": latest_model
+    }

@@ -1,9 +1,8 @@
-from sqlalchemy import DECIMAL, Column, ForeignKey, Integer, String, JSON, TIMESTAMP, func
+from sqlalchemy import DECIMAL, Column, Float, ForeignKey, Integer, String, JSON, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import UUID
-# --- CHANGE THIS LINE ---
 from sqlalchemy.orm import declarative_base
 
-# Create a base class for our models to inherit from
+# base class for our models to inherit from
 Base = declarative_base()
 
 class UserEvent(Base):
@@ -15,7 +14,6 @@ class UserEvent(Base):
     event_type = Column(String(50), nullable=False)
     entity_id = Column(String(100))
     entity_type = Column(String(50))
-    # --- CHANGE THIS LINE ---
     # Renamed to avoid clashing with SQLAlchemy's reserved 'metadata' attribute
     metadata_ = Column("metadata", JSON) 
     request_id = Column(UUID(as_uuid=True))
@@ -76,3 +74,15 @@ class Trial(Base):
     mechanism_of_action = Column(String(255))
     investigator_id = Column(UUID(as_uuid=True), ForeignKey("investigators.investigator_id"))
     outcome = Column(String(50))
+
+class MLModel(Base):
+    __tablename__ = "ml_models"
+
+    model_id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    version = Column(String, nullable=False)
+    trained_on = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    auc = Column(Float)
+    calibration_score = Column(Float)
+    notes = Column(String)
+    artifact_path = Column(String)
