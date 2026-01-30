@@ -5,6 +5,7 @@ from .core.celery_app import celery_app
 from .api.endpoints import predictions, investigators, events, watchlists, alerts, crowding
 from .jobs.scheduler import setup_periodic_tasks
 from .models import predict
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +21,26 @@ app = FastAPI(
     description="API for serving competitive intelligence insights.",
     version="1.0.0",
     lifespan=lifespan
+)
+
+origins = [
+    "https://automation.chalkbio.com",
+    "https://dashboard.chalkbio.com",
+    "https://api.chalkbio.com",
+    "https://chalkbio.com",
+
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3003",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # API routers
